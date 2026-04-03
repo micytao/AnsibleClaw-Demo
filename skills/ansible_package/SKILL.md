@@ -17,13 +17,19 @@ SKILL.md) for ALL execution. Do NOT run local `ansible` CLI commands.
 | Setting | Value |
 |---------|-------|
 | AAP Controller | `https://aap-aap.apps.cluster-rmf2p-1.dynamic.redhatworkshops.io` |
-| Default Inventory | `` |
-| Default Credential | `` |
+| Default AAP inventory | `Demo Inventory` |
+| Default Credential | `Demo Credential` |
 | Default Project | `AnsibleClaw` |
 | Default EE | `Default execution environment` |
 
+The **Default AAP inventory** value is a **Controller inventory** (name or numeric ID) defined and maintained in Ansible Automation Platform, not a path to a local file such as `inventory/hosts.yml`.
+
 **IMPORTANT**: The environment variable `AAP_CONTROLLER_TOKEN` MUST be set
 before running any command. All other AAP settings are pre-configured.
+
+### Inventory (production)
+
+Hosts and groups for AAP runs come from **inventories managed in AAP** (UI or API). Do not rely on the repo’s static `inventory/` files for production execution. The `--inventory` flag on `aap_run.py` selects **another AAP inventory** (name or ID), not a path on disk.
 
 ### Quick Start (FOLLOW THESE STEPS EXACTLY)
 
@@ -75,6 +81,8 @@ Do **not** use this for basic local file operations or CLI tasks that the agent 
 You MUST use `scripts/aap_run.py` for all commands below. The script
 auto-detects the correct API path for both AAP 2.4 (`/api/v2`) and
 AAP 2.5+ Gateway (`/api/controller/v2`).
+
+All jobs and ad-hoc commands use **AAP-managed inventories**; Job Templates are created with a Controller inventory attached. Use baked defaults or `--inventory` to refer to an inventory object in AAP, not a local file.
 
 ### Ad-Hoc Commands
 

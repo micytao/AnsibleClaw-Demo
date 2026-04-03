@@ -34,10 +34,10 @@ MODULE = "ansible.builtin.package"
 
 _BAKED_URL = "https://aap-aap.apps.cluster-rmf2p-1.dynamic.redhatworkshops.io"
 _BAKED_VERIFY_SSL = "true"
-_BAKED_INVENTORY = ""
-_BAKED_CREDENTIAL = ""
+_BAKED_INVENTORY = "Demo Inventory"
+_BAKED_CREDENTIAL = "Demo Credential"
 _BAKED_PROJECT = "AnsibleClaw"
-_BAKED_ORGANIZATION = "Ansible Product Demos (APD)"
+_BAKED_ORGANIZATION = "AnsibleClaw Demo"
 _BAKED_EE = "Default execution environment"
 
 # ---------------------------------------------------------------------------
