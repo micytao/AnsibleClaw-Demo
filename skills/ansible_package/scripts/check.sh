@@ -62,8 +62,11 @@ aap_check() {
 
 aap_check "python3 is installed" command -v python3
 
-if [[ -n "${AAP_CONTROLLER_URL:-}" ]]; then
-    echo "  [INFO] AAP_CONTROLLER_URL = ${AAP_CONTROLLER_URL}"
+# Baked AAP URL from AnsibleClaw config; env var overrides if set
+AAP_URL="${AAP_CONTROLLER_URL:-https://aap-aap.apps.cluster-rmf2p-1.dynamic.redhatworkshops.io}"
+
+if [[ -n "$AAP_URL" ]]; then
+    echo "  [INFO] AAP Controller URL = ${AAP_URL}"
     aap_check "AAP_CONTROLLER_TOKEN is set" test -n "${AAP_CONTROLLER_TOKEN:-}"
 
     VERIFY_FLAG=""
@@ -71,7 +74,7 @@ if [[ -n "${AAP_CONTROLLER_URL:-}" ]]; then
         VERIFY_FLAG="--insecure"
     fi
     aap_check "AAP Controller is reachable" \
-        bash -c "curl -sf ${VERIFY_FLAG} -H 'Authorization: Bearer ${AAP_CONTROLLER_TOKEN:-}' '${AAP_CONTROLLER_URL}/api/v2/ping/' > /dev/null 2>&1 || curl -sf ${VERIFY_FLAG} -H 'Authorization: Bearer ${AAP_CONTROLLER_TOKEN:-}' '${AAP_CONTROLLER_URL}/api/controller/v2/ping/' > /dev/null 2>&1"
+        bash -c "curl -sf ${VERIFY_FLAG} -H 'Authorization: Bearer ${AAP_CONTROLLER_TOKEN:-}' '${AAP_URL}/api/v2/ping/' > /dev/null 2>&1 || curl -sf ${VERIFY_FLAG} -H 'Authorization: Bearer ${AAP_CONTROLLER_TOKEN:-}' '${AAP_URL}/api/controller/v2/ping/' > /dev/null 2>&1"
 
     aap_check "scripts/aap_run.py exists" test -f "$(dirname "$0")/aap_run.py"
 else
@@ -88,7 +91,7 @@ if [[ $FAIL -gt 0 && $AAP_FAIL -gt 0 ]]; then
 elif [[ $FAIL -gt 0 ]]; then
     echo
     echo "CLI mode has failures, but AAP mode is available."
-elif [[ $AAP_FAIL -gt 0 && -n "${AAP_CONTROLLER_URL:-}" ]]; then
+elif [[ $AAP_FAIL -gt 0 && -n "$AAP_URL" ]]; then
     echo
     echo "AAP mode has failures, but CLI mode is available."
 fi

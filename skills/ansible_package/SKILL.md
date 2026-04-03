@@ -9,6 +9,50 @@ description: >-
 
 Generic OS package manager
 
+## Execution Mode -- READ THIS FIRST
+
+**AAP mode is active.** You MUST use `scripts/aap_run.py` (located next to this
+SKILL.md) for ALL execution. Do NOT run local `ansible` CLI commands.
+
+| Setting | Value |
+|---------|-------|
+| AAP Controller | `https://aap-aap.apps.cluster-rmf2p-1.dynamic.redhatworkshops.io` |
+| Default Inventory | `` |
+| Default Credential | `` |
+| Default Project | `AnsibleClaw` |
+| Default EE | `Default execution environment` |
+
+**IMPORTANT**: The environment variable `AAP_CONTROLLER_TOKEN` MUST be set
+before running any command. All other AAP settings are pre-configured.
+
+### Quick Start (FOLLOW THESE STEPS EXACTLY)
+
+1. **Check prerequisites**:
+   ```bash
+   bash scripts/check.sh
+   ```
+
+2. **Run ad-hoc command** (dry-run first, ALWAYS):
+   ```bash
+   python3 scripts/aap_run.py adhoc "name=ntpdate state=present" --check
+   ```
+
+3. **Apply the change** (after reviewing dry-run output):
+   ```bash
+   python3 scripts/aap_run.py adhoc "name=ntpdate state=present"
+   ```
+
+4. **Or launch an existing Job Template**:
+   ```bash
+   python3 scripts/aap_run.py launch "package"
+   ```
+
+5. **If no Job Template exists yet, create one first**:
+   ```bash
+   python3 scripts/aap_run.py create-jt --name "package"
+   ```
+   Then launch it with step 4.
+
 ## When to Use This Skill
 
 Use the `ansible.builtin.package` Ansible module when you need to manage package on remote hosts. This is preferable to local CLI commands when:
@@ -26,26 +70,56 @@ Do **not** use this for basic local file operations or CLI tasks that the agent 
 | `name` | str | yes | - | Package name, or package specifier with version. Syntax varies with package manager. For example V(name-1.0) or... |
 | `state` | str | yes | - | Whether to install (V(present)), or remove (V(absent)) a package. You can use other states like V(latest) ONLY if... |
 | `use` | str | no | auto | The required package manager module to use (V(dnf), V(apt), and so on). The default V(auto) will use existing facts... |
+## How to Execute (AAP)
 
-## Local Execution (CLI)
+You MUST use `scripts/aap_run.py` for all commands below. The script
+auto-detects the correct API path for both AAP 2.4 (`/api/v2`) and
+AAP 2.5+ Gateway (`/api/controller/v2`).
 
-Run this module using the `ansible` CLI (from `ansible-core`):
+### Ad-Hoc Commands
+
+Run the module directly on AAP-managed hosts:
 
 ```bash
-ansible <host-pattern> -m ansible.builtin.package -a "<key=value arguments>" -b --check --diff
+# ALWAYS dry-run first
+python3 scripts/aap_run.py adhoc "name=ntpdate state=present" --check
+
+# Apply the change after reviewing dry-run output
+python3 scripts/aap_run.py adhoc "name=ntpdate state=present"
+
+# Target specific hosts
+python3 scripts/aap_run.py adhoc "name=ntpdate state=present" --limit "web1.example.com"
 ```
 
-### Quick Examples
+### Job Templates
+
+Job Templates provide repeatable, RBAC-controlled execution in AAP.
+
+**Create a Job Template** (if one does not exist yet):
 
 ```bash
-# Dry-run first (always recommended for destructive operations)
-ansible webservers -m ansible.builtin.package -a "name=ntpdate state=present" -b --check --diff
-
-# Apply the change
-ansible webservers -m ansible.builtin.package -a "name=ntpdate state=present" -b --diff
+python3 scripts/aap_run.py create-jt --name "package"
 ```
 
-### Examples from Ansible Documentation
+**Launch a Job Template**:
+
+```bash
+python3 scripts/aap_run.py launch "package"
+
+# With extra variables
+python3 scripts/aap_run.py launch "package" --extra-vars '{"target_hosts": "webservers"}'
+
+# Limit to specific hosts
+python3 scripts/aap_run.py launch "package" --limit "web1.example.com"
+```
+
+**Check job status**:
+
+```bash
+python3 scripts/aap_run.py status <job-id>
+```
+
+## Examples from Ansible Documentation
 
 ```yaml
 - name: Install ntpdate
@@ -73,89 +147,8 @@ ansible webservers -m ansible.builtin.package -a "name=ntpdate state=present" -b
     use: dnf
 ```
 
-## Key Flags
-
-| Flag | Purpose |
-|------|---------|
-| `-b` | Run with sudo/become (required for most system changes) |
-| `--check` | Dry-run mode -- shows what **would** change without applying |
-| `--diff` | Shows detailed before/after differences |
-| `-i <path>` | Specify inventory file (see Inventory section below) |
-| `-l <pattern>` | Limit to specific hosts within a group |
-
-## JSON Output
-
-To get structured JSON output for programmatic parsing:
-
-```bash
-ANSIBLE_STDOUT_CALLBACK=json ansible <hosts> -m ansible.builtin.package -a "<args>" -b
-```
-
-Or set `stdout_callback = json` in your `ansible.cfg` (AnsibleClaw projects include this by default).
-
 ## Safety
 
-- **Always dry-run first**: Use `--check --diff` before applying destructive changes
-- **Become/sudo**: Most system-level modules require `-b`. Check the parameters above for guidance.
+- **ALWAYS dry-run first**: Use `--check` (AAP) or `--check --diff` (CLI) before applying changes
+- **Become/sudo**: Most system-level modules require elevated privileges. In AAP mode, this is configured in the credential.
 - **Idempotency**: This module is idempotent -- running it multiple times with the same arguments produces the same result
-
-## Inventory
-
-When running from inside the AnsibleClaw project, `ansible.cfg` sets the default inventory automatically. When using this skill from another location:
-
-- Specify inventory explicitly: `-i /path/to/inventory.yml`
-- Set environment variable: `export ANSIBLE_INVENTORY=/path/to/inventory.yml`
-- Use Ansible's default: `/etc/ansible/hosts`
-- Target a single host directly: `ansible <hostname>, -m ansible.builtin.package -a "..."` (note the trailing comma)
-
-## Production Execution (AAP)
-
-When `AAP_CONTROLLER_URL` is set, use Ansible Automation Platform for governed, auditable execution.
-All jobs are tracked, RBAC-controlled, and run inside Execution Environments managed by AAP.
-
-### Environment Setup
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `AAP_CONTROLLER_URL` | yes | Base URL of the AAP/AWX controller (e.g. `https://aap.example.com`) |
-| `AAP_CONTROLLER_TOKEN` | yes | OAuth2 bearer token for authentication |
-| `AAP_VERIFY_SSL` | no | Set to `false` to skip TLS verification (default: `true`) |
-| `AAP_DEFAULT_INVENTORY` | no | Default inventory name or ID |
-| `AAP_DEFAULT_CREDENTIAL` | no | Default credential name or ID |
-
-### Ad-Hoc Command via AAP
-
-Use the generated helper script (`scripts/aap_run.py`). It auto-detects
-the correct API path for both classic AAP/AWX (`/api/v2`) and AAP 2.5+
-Gateway (`/api/controller/v2`), polls until completion, and prints JSON:
-
-```bash
-python3 scripts/aap_run.py adhoc "name=ntpdate state=present" --inventory "My Inventory" --credential "Machine Cred"
-
-# Dry-run
-python3 scripts/aap_run.py adhoc "name=ntpdate state=present" --inventory "My Inventory" --credential "Machine Cred" --check
-```
-
-### Job Template Launch via AAP
-
-If a job template exists for this module's playbook (create one from the
-AnsibleClaw web dashboard or the AAP UI):
-
-```bash
-python3 scripts/aap_run.py launch "package-deploy" --extra-vars '{"target_hosts": "webservers"}'
-
-python3 scripts/aap_run.py launch "package-deploy" --limit "web1.example.com"
-```
-
-### Checking Job Status
-
-The helper script polls automatically. To check a previously launched job:
-
-```bash
-python3 scripts/aap_run.py status <job-id>
-```
-
-### Choosing CLI vs AAP
-
-- **Development/testing**: Use the CLI section above -- direct `ansible` commands with local inventory
-- **Production**: Set `AAP_CONTROLLER_URL` and `AAP_CONTROLLER_TOKEN`, then use `scripts/aap_run.py` for governed, auditable execution

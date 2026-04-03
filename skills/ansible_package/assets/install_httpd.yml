@@ -1,0 +1,17 @@
+---
+# Install Apache (package name httpd on RHEL/Fedora; use apache2 on Debian/Ubuntu).
+#
+# Local:
+#   ansible-playbook skills/ansible_package/assets/install_httpd.yml -i inventory/hosts.yml --check --diff
+#   ansible-playbook skills/ansible_package/assets/install_httpd.yml -i inventory/hosts.yml --diff
+#
+# AAP: point a job template at this playbook, or use aap_run.py adhoc (see SKILL.md).
+#
+- name: Install httpd on target hosts
+  hosts: all
+  become: true
+  tasks:
+    - name: Ensure httpd is installed
+      ansible.builtin.package:
+        name: httpd
+        state: present
