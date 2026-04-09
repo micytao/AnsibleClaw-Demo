@@ -12,7 +12,8 @@ Generic OS package manager
 ## Execution Mode -- READ THIS FIRST
 
 **AAP mode is active.** You MUST use `scripts/aap_run.py` (located next to this
-SKILL.md) for ALL execution. Do NOT run local `ansible` CLI commands.
+SKILL.md) for ALL execution. Do NOT run local `ansible` CLI commands or
+`scripts/run.sh` — that wrapper invokes the local `ansible` CLI only, not AAP.
 
 | Setting | Value |
 |---------|-------|
@@ -33,31 +34,40 @@ Hosts and groups for AAP runs come from **inventories managed in AAP** (UI or AP
 
 ### Quick Start (FOLLOW THESE STEPS EXACTLY)
 
+**Preferred path: Job Templates** (repeatable, RBAC-friendly, typical production flow).
+
 1. **Check prerequisites**:
    ```bash
    bash scripts/check.sh
    ```
 
-2. **Run ad-hoc command** (dry-run first, ALWAYS):
-   ```bash
-   python3 scripts/aap_run.py adhoc "name=ntpdate state=present" --check
-   ```
+2. **Prepare `assets/playbook.yml`** — edit tasks to use `ansible.builtin.package` with the parameters you need. The Job Template references this path **inside your AAP Project’s Git repo**; changes must be **pushed** and the project **synced** in AAP before launch (or use AnsibleClaw **Deploy to AAP** in the web UI).
 
-3. **Apply the change** (after reviewing dry-run output):
-   ```bash
-   python3 scripts/aap_run.py adhoc "name=ntpdate state=present"
-   ```
-
-4. **Or launch an existing Job Template**:
-   ```bash
-   python3 scripts/aap_run.py launch "package"
-   ```
-
-5. **If no Job Template exists yet, create one first**:
+3. **Create a Job Template** (skip if it already exists):
    ```bash
    python3 scripts/aap_run.py create-jt --name "package"
    ```
-   Then launch it with step 4.
+   Use your site’s Job Template naming convention if a prefix is configured (e.g. `AnsibleClaw: …`).
+
+4. **Launch the Job Template**:
+   ```bash
+   python3 scripts/aap_run.py launch "package"
+   ```
+   Add `--limit`, `--inventory`, or `--extra-vars` as needed (see **How to Execute (AAP)** below).
+
+5. **Check job status** (optional):
+   ```bash
+   python3 scripts/aap_run.py status <job-id>
+   ```
+
+#### Optional: ad-hoc (one-off, no playbook)
+
+Use only for quick probes or debugging — **not** the default production path:
+
+```bash
+python3 scripts/aap_run.py adhoc "name=ntpdate state=present" --check
+python3 scripts/aap_run.py adhoc "name=ntpdate state=present"
+```
 
 ## When to Use This Skill
 
@@ -82,22 +92,11 @@ You MUST use `scripts/aap_run.py` for all commands below. The script
 auto-detects the correct API path for both AAP 2.4 (`/api/v2`) and
 AAP 2.5+ Gateway (`/api/controller/v2`).
 
-All jobs and ad-hoc commands use **AAP-managed inventories**; Job Templates are created with a Controller inventory attached. Use baked defaults or `--inventory` to refer to an inventory object in AAP, not a local file.
+**Do not use `scripts/run.sh` in AAP mode** — it is for local CLI execution only.
 
-### Ad-Hoc Commands
+**Prefer Job Templates** for normal work. **Ad-hoc** is optional (one-off runs without a playbook).
 
-Run the module directly on AAP-managed hosts:
-
-```bash
-# ALWAYS dry-run first
-python3 scripts/aap_run.py adhoc "name=ntpdate state=present" --check
-
-# Apply the change after reviewing dry-run output
-python3 scripts/aap_run.py adhoc "name=ntpdate state=present"
-
-# Target specific hosts
-python3 scripts/aap_run.py adhoc "name=ntpdate state=present" --limit "web1.example.com"
-```
+All launches use **AAP-managed inventories**; Job Templates are created with a Controller inventory attached. Use baked defaults or `--inventory` to refer to an inventory object in AAP, not a local file.
 
 ### Job Templates
 
@@ -125,6 +124,16 @@ python3 scripts/aap_run.py launch "package" --limit "web1.example.com"
 
 ```bash
 python3 scripts/aap_run.py status <job-id>
+```
+
+### Optional: ad-hoc commands
+
+One-off module runs without `assets/playbook.yml` (debugging or quick checks):
+
+```bash
+python3 scripts/aap_run.py adhoc "name=ntpdate state=present" --check
+python3 scripts/aap_run.py adhoc "name=ntpdate state=present"
+python3 scripts/aap_run.py adhoc "name=ntpdate state=present" --limit "web1.example.com"
 ```
 
 ## Examples from Ansible Documentation
@@ -157,6 +166,6 @@ python3 scripts/aap_run.py status <job-id>
 
 ## Safety
 
-- **ALWAYS dry-run first**: Use `--check` (AAP) or `--check --diff` (CLI) before applying changes
+- **ALWAYS dry-run first**: In AAP mode, use optional **ad-hoc** `--check`, run the Job Template in **check mode** from the Controller UI when available, or validate in a non-production inventory first; in CLI mode use `--check --diff` before applying changes
 - **Become/sudo**: Most system-level modules require elevated privileges. In AAP mode, this is configured in the credential.
 - **Idempotency**: This module is idempotent -- running it multiple times with the same arguments produces the same result
