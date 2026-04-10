@@ -6,7 +6,7 @@
 #   ansible-playbook assets/playbook.yml -i /path/to/inventory.yml --check --diff
 #   ansible-playbook assets/playbook.yml -i /path/to/inventory.yml --diff
 #
-- name: "Deploy and secure an Nginx web server."
+- name: "Deploy and Configure Nginx Web Server"
   hosts: all
   become: true
   collections:
@@ -17,7 +17,7 @@
         name: "nginx"
         state: "present"
 
-    - name: "Deploy index.html template"
+    - name: "Template index.html to Nginx docroot"
       ansible.builtin.template:
         src: "index.html.j2"
         dest: "/usr/share/nginx/html/index.html"

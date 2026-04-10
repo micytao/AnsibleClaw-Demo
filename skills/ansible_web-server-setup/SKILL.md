@@ -1,13 +1,13 @@
 ---
 name: ansible-web-server-setup
 description: >-
-  Deploy and secure an Nginx web server.
+  Composite skill combining 4 Ansible modules
   Use when managing multiple related resources on remote hosts via Ansible.
 ---
 
 # Web-Server-Setup
 
-Deploy and secure an Nginx web server.
+Composite skill combining 4 Ansible modules
 
 This is a **composite skill** combining 4 Ansible module(s) into a single use-case-driven package.
 
