@@ -41,8 +41,8 @@ SKILL_NAME = "web-server-setup"
 
 _BAKED_URL = "https://aap-aap.apps.cluster-rmf2p-1.dynamic.redhatworkshops.io"
 _BAKED_VERIFY_SSL = "true"
-_BAKED_INVENTORY = "Demo Inventory"
-_BAKED_CREDENTIAL = "Demo Credential"
+_BAKED_INVENTORY = ""
+_BAKED_CREDENTIAL = ""
 _BAKED_PROJECT = "AnsibleClaw"
 _BAKED_ORGANIZATION = "AnsibleClaw Demo"
 _BAKED_EE = "Default execution environment"
@@ -338,7 +338,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         prog="aap_run.py",
         description=f"AAP Controller helper for composite skill: {SKILL_NAME}. "
-                    "Composite skill combining 4 Ansible modules",
+                    "Deploy and secure an Nginx web server.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
