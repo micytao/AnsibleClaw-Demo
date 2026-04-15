@@ -338,7 +338,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         prog="aap_run.py",
         description=f"AAP Controller helper for composite skill: {SKILL_NAME}. "
-                    "Deploy and secure an Nginx web server.",
+                    "Composite skill combining 4 Ansible modules",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 

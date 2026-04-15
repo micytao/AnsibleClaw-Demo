@@ -1,26 +1,33 @@
 ---
 # playbook.yml -- Composite playbook for web-server-setup
+# Deploys and configures Nginx
 #
-- name: "Deploy and secure an Nginx web server."
+- name: "Deploy and configure Nginx web server"
   hosts: all
   become: true
   collections:
     - ansible.posix
   tasks:
-    - name: "Install Nginx"
+    - name: "Install Nginx package"
       ansible.builtin.package:
         name: "nginx"
         state: "present"
 
-    - name: "Ensure Nginx is started and enabled"
+    - name: "Template index.html to target host"
+      ansible.builtin.template:
+        src: "index.html.j2"
+        dest: "/usr/share/nginx/html/index.html"
+        mode: '0644'
+
+    - name: "Ensure Nginx service is started and enabled"
       ansible.builtin.service:
         name: "nginx"
         state: "started"
-        enabled: true
+        enabled: yes
 
-    - name: "Permit traffic in default zone for http service"
+    - name: "Open port 80/tcp in firewalld"
       ansible.posix.firewalld:
-        service: http
+        port: "80/tcp"
+        state: enabled
         permanent: true
         immediate: true
-        state: enabled
