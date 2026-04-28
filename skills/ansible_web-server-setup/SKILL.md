@@ -1,13 +1,13 @@
 ---
 name: ansible-web-server-setup
 description: >-
-  Composite skill combining 4 Ansible modules
+  Deploy and secure an Nginx web server.
   Use when managing multiple related resources on remote hosts via Ansible.
 ---
 
 # Web-Server-Setup
 
-Composite skill combining 4 Ansible modules
+Deploy and secure an Nginx web server.
 
 This is a **composite skill** combining 4 Ansible module(s) into a single use-case-driven package.
 
@@ -20,8 +20,8 @@ SKILL.md) for ALL execution. Do NOT run local `ansible-playbook` or
 | Setting | Value |
 |---------|-------|
 | AAP Controller | `https://aap-aap.apps.cluster-rmf2p-1.dynamic.redhatworkshops.io` |
-| Default AAP inventory | `` |
-| Default Credential | `` |
+| Default AAP inventory | `Demo Inventory` |
+| Default Credential | `Demo Credential` |
 | Default Project | `AnsibleClaw` |
 | Default EE | `Default execution environment` |
 
